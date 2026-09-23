@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>دفتر ديون المحل</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#4f46e5;
+  --primary-dark:#4338ca;
+  --primary-light:#eef2ff;
+  --dark:#0f172a;
+  --bg:#f1f5f9;
+  --card:#ffffff;
+  --text:#1e293b;
+  --muted:#64748b;
+  --border:#e2e8f0;
+  --red:#dc2626;
+  --red-light:#fef2f2;
+  --green:#16a34a;
+  --green-light:#f0fdf4;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-lg:0 10px 25px -5px rgba(0,0,0,.08),0 8px 10px -6px rgba(0,0,0,.04);
+  --radius:16px;
+  --radius-sm:10px;
+}
+html,body{height:100%}
+body{
+  background:var(--bg);
+  font-family:'Segoe UI',Tahoma,Arial,sans-serif;
+  color:var(--text);
+  line-height:1.6;
+  overflow:hidden; /* منع تمرير الصفحة كاملة */
+}
+button,input{font:inherit}
+button{cursor:pointer;border:0;transition:all .2s ease}
+button:active{transform:scale(.97)}
+
+.app{
+  max-width:1200px;
+  margin:auto;
+  padding:16px;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+/* ===== Header ===== */
+header{
+  background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#a855f7 100%);
+  color:#fff;
+  padding:18px 24px;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow-lg);
+  position:relative;
+  overflow:hidden;
+  flex-shrink:0;
+}
+header::before{
+  content:'';
+  position:absolute;
+  top:-50%;right:-20%;
+  width:300px;height:300px;
+  background:rgba(255,255,255,.08);
+  border-radius:50%;
+}
+header::after{
+  content:'';
+  position:absolute;
+  bottom:-60%;left:-10%;
+  width:250px;height:250px;
+  background:rgba(255,255,255,.05);
+  border-radius:50%;
+}
+header h1{margin:0 0 4px;font-size:22px;position:relative;z-index:1}
+header p{margin:0;color:rgba(255,255,255,.85);font-size:13px;position:relative;z-index:1}
+
+/* ===== Stats ===== */
+.stats{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:12px;
+  flex-shrink:0;
+}
+.stat{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:14px 18px;
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
+  position:relative;
+  overflow:hidden;
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+.stat:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.stat::before{
+  content:'';
+  position:absolute;
+  top:0;right:0;
+  width:4px;height:100%;
+}
+.stat:nth-child(1)::before{background:var(--primary)}
+.stat:nth-child(2)::before{background:var(--red)}
+.stat:nth-child(3)::before{background:var(--green)}
+.stat small{color:var(--muted);font-size:12px;display:block;margin-bottom:2px}
+.stat strong{display:block;font-size:20px;font-weight:700;color:var(--text)}
+.stat:nth-child(2) strong{color:var(--red)}
+.stat:nth-child(3) strong{color:var(--green)}
+
+/* ===== Main Grid ===== */
+.main-grid{
+  display:grid;
+  grid-template-columns:1.8fr 1.2fr;
+  gap:14px;
+  flex:1;
+  min-height:0; /* مهم لتفعيل scroll الداخلي */
+}
+
+/* ===== Panels ===== */
+.panel{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:16px;
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+}
+.panel h2{
+  font-size:16px;
+  margin:0 0 12px;
+  color:var(--dark);
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:700;
+  flex-shrink:0;
+}
+.panel-form{order:2}
+.panel-table{order:1}
+
+/* ===== Form ===== */
+.formgrid{display:grid;grid-template-columns:1fr;gap:9px}
+input{
+  width:100%;
+  padding:11px 13px;
+  border:2px solid var(--border);
+  border-radius:var(--radius-sm);
+  outline:none;
+  background:#fff;
+  text-align:right;
+  transition:all .2s ease;
+  font-size:14px;
+  color:var(--text);
+}
+input::placeholder{color:#94a3b8}
+input:hover{border-color:#cbd5e1}
+input:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 4px rgba(79,70,229,.1);
+  background:#fafbff;
+}
+
+/* ===== Buttons ===== */
+.btn{
+  padding:10px 16px;
+  border-radius:var(--radius-sm);
+  font-weight:600;
+  font-size:14px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  transition:all .2s ease;
+  white-space:nowrap;
+}
+.primary{
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff;
+  box-shadow:0 2px 8px rgba(79,70,229,.3);
+}
+.primary:hover{box-shadow:0 4px 14px rgba(79,70,229,.4);transform:translateY(-1px)}
+.gray{background:#f1f5f9;color:var(--text);border:1px solid var(--border)}
+.gray:hover{background:#e2e8f0}
+.green{background:var(--green-light);color:var(--green);border:1px solid #bbf7d0}
+.green:hover{background:#dcfce7}
+.red{background:var(--red-light);color:var(--red);border:1px solid #fecaca}
+.red:hover{background:#fee2e2}
+
+.form-actions{
+  display:flex;
+  gap:10px;
+  margin-top:12px;
+  justify-content:flex-end;
+}
+
+/* ===== Toolbar ===== */
+.toolbar{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+  flex-shrink:0;
+}
+.toolbar h2{margin:0}
+.toolbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.search{
+  max-width:300px;
+  background:#f8fafc;
+}
+.search:focus{background:#fff}
+.export-btn{
+  background:linear-gradient(135deg,#16a34a,#15803d);
+  color:#fff;
+  box-shadow:0 2px 8px rgba(22,163,74,.25);
+}
+.export-btn:hover{box-shadow:0 4px 12px rgba(22,163,74,.35)}
+
+/* ===== Filters ===== */
+.filters{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:12px;
+  flex-shrink:0;
+}
+.filter{
+  padding:7px 14px;
+  border-radius:20px;
+  font-size:13px;
+  font-weight:600;
+  background:#f1f5f9;
+  color:var(--muted);
+  border:1px solid transparent;
+  transition:all .2s ease;
+}
+.filter:hover{background:#e2e8f0;color:var(--text)}
+.filter.active{
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  color:#fff;
+  box-shadow:0 2px 8px rgba(79,70,229,.3);
+}
+
+/* ===== Scrollable Customers Area ===== */
+.list-wrapper{
+  flex:1;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:auto;
+  border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  background:#fff;
+  scrollbar-width:thin;
+  scrollbar-color:#cbd5e1 #f1f5f9;
+}
+.list-wrapper::-webkit-scrollbar{width:8px;height:8px}
+.list-wrapper::-webkit-scrollbar-track{background:#f1f5f9;border-radius:4px}
+.list-wrapper::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
+.list-wrapper::-webkit-scrollbar-thumb:hover{background:#94a3b8}
+
+/* ===== Table ===== */
+.data-table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:560px;
+}
+.data-table th,
+.data-table td{
+  padding:11px 10px;
+  border-bottom:1px solid var(--border);
+  text-align:right;
+  vertical-align:middle;
+}
+.data-table th{
+  background:#f8fafc;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:700;
+  position:sticky;
+  top:0;
+  z-index:2;
+  text-transform:uppercase;
+  letter-spacing:.3px;
+  box-shadow:0 1px 0 var(--border);
+}
+.data-table tbody tr{transition:background .15s ease}
+.data-table tbody tr:hover{background:#f8fafc}
+.data-table tbody tr:last-child td{border-bottom:0}
+
+.name{font-weight:700;font-size:14px;color:var(--dark)}
+.phone{font-size:12px;color:var(--muted);margin-top:2px}
+.amount{font-weight:700;color:var(--red);font-size:14px}
+.amount.paid{color:var(--green)}
+
+.actions{display:flex;gap:5px;flex-wrap:wrap}
+.mini{
+  padding:6px 10px;
+  border-radius:8px;
+  font-size:12px;
+  font-weight:600;
+  background:#f1f5f9;
+  color:var(--text);
+  border:1px solid var(--border);
+}
+.mini:hover{background:#e2e8f0}
+.mini.green{background:var(--green-light);color:var(--green);border-color:#bbf7d0}
+.mini.green:hover{background:#dcfce7}
+.mini.red{background:var(--red-light);color:var(--red);border-color:#fecaca}
+.mini.red:hover{background:#fee2e2}
+
+.empty{
+  text-align:center;
+  padding:40px 20px;
+  color:#94a3b8;
+  font-size:14px;
+}
+
+/* ===== Modal ===== */
+.modal{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(15,23,42,.5);
+  backdrop-filter:blur(4px);
+  z-index:100;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+  animation:fadeIn .2s ease;
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal.show{display:flex}
+.modalbox{
+  width:100%;
+  max-width:520px;
+  background:#fff;
+  border-radius:var(--radius);
+  padding:22px;
+  max-height:90vh;
+  overflow:auto;
+  box-shadow:0 25px 50px -12px rgba(0,0,0,.25);
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.modalbox h3{
+  margin:0 0 14px;
+  font-size:18px;
+  color:var(--dark);
+  padding-left:40px;
+}
+.close{
+  float:left;
+  background:#f1f5f9;
+  border-radius:50%;
+  width:34px;
+  height:34px;
+  font-size:18px;
+  color:var(--muted);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.close:hover{background:#e2e8f0;color:var(--text)}
+
+.detail-summary{
+  background:linear-gradient(135deg,#f8fafc,#f1f5f9);
+  border-radius:var(--radius-sm);
+  padding:14px;
+  margin:12px 0;
+  border:1px solid var(--border);
+  line-height:2;
+}
+.detail-summary b{color:var(--dark)}
+.detail-summary .paid{color:var(--green)}
+
+.history{
+  border-top:1px solid var(--border);
+  margin-top:12px;
+  max-height:240px;
+  overflow:auto;
+}
+.history-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:11px 0;
+  border-bottom:1px solid var(--border);
+  font-size:13px;
+  gap:10px;
+}
+.history-row:last-child{border-bottom:0}
+.history-row small{color:var(--muted);font-size:11px}
+.plus{color:var(--red);font-weight:700;font-size:14px}
+.minus{color:var(--green);font-weight:700;font-size:14px}
+
+.modal-actions{display:flex;gap:10px;margin-top:16px}
+.modal-actions .btn{flex:1}
+
+/* ===== Responsive ===== */
+@media(max-width:768px){
+  body{overflow:auto}
+  .app{height:auto;min-height:100vh;padding:12px}
+  header{padding:16px 18px}
+  header h1{font-size:20px}
+  .stats{grid-template-columns:1fr;gap:8px}
+  .stat{padding:12px 14px}
+  .stat strong{font-size:18px}
+  .main-grid{grid-template-columns:1fr;flex:none}
+  .panel-form,.panel-table{order:initial}
+  .panel{min-height:auto}
+  .list-wrapper{max-height:60vh}
+  .search{max-width:none;width:100%}
+  .toolbar{align-items:stretch}
+  .data-table{min-width:100%}
+  .data-table th,.data-table td{padding:9px 7px}
+  .actions{flex-direction:column}
+  .mini{width:100%;justify-content:center}
+  .modal-actions{flex-direction:column}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <h1>📒 دفتر ديون المحل</h1>
+  <p>تسجيل الديون والدفعات ومتابعة المبلغ المتبقي</p>
+</header>
+
+<section class="stats">
+  <div class="stat"><small>عدد الزبائن</small><strong id="count">0</strong></div>
+  <div class="stat"><small>إجمالي المتبقي</small><strong id="total">0 دج</strong></div>
+  <div class="stat"><small>إجمالي المدفوع</small><strong id="paidTotal">0 دج</strong></div>
+</section>
+
+<div class="main-grid">
+  <section class="panel panel-table">
+    <div class="toolbar">
+      <h2>👥 الزبائن</h2>
+      <div class="toolbar-right">
+        <button class="btn export-btn" onclick="exportToExcel()">⬇️ تحميل Excel</button>
+        <input id="search" class="search" placeholder="🔎 ابحث بالاسم أو الهاتف" oninput="render()">
+      </div>
+    </div>
+    <div class="filters">
+      <button class="btn mini filter active" data-filter="all" onclick="setFilter('all')">الكل</button>
+      <button class="btn mini filter" data-filter="debt" onclick="setFilter('debt')">عليهم دين</button>
+      <button class="btn mini filter" data-filter="paid" onclick="setFilter('paid')">مسددون</button>
+    </div>
+    <!-- منطقة الزبائن القابلة للتمرير -->
+    <div class="list-wrapper">
+      <div id="list"></div>
+    </div>
+  </section>
+
+  <section class="panel panel-form">
+    <h2>➕ تسجيل عملية جديدة</h2>
+    <div class="formgrid">
+      <input id="name" placeholder="اسم ولقب الزبون">
+      <input id="phone" placeholder="رقم الهاتف (اختياري)" inputmode="tel">
+      <input id="amount" type="number" min="1" placeholder="مبلغ الدين بالدج">
+      <input id="note" placeholder="ملاحظة (اختياري)">
+    </div>
+    <div class="form-actions">
+      <button class="btn primary" onclick="addDebt()">💾 حفظ الدين</button>
+      <button class="btn gray" onclick="clearForm()">مسح</button>
+    </div>
+  </section>
+</div>
+</div>
+
+<div class="modal" id="modal">
+<div class="modalbox">
+  <button class="close" onclick="closeModal()">×</button>
+  <h3 id="modalTitle"></h3>
+  <div id="modalBody"></div>
+</div>
+</div>
+
+<script>
+let customers=JSON.parse(localStorage.getItem("debtBookCustomers")||"[]");
+let filter="all";
+
+function save(){localStorage.setItem("debtBookCustomers",JSON.stringify(customers))}
+function money(n){return Number(n||0).toLocaleString("ar-DZ")+" دج"}
+function uid(){return Date.now()+Math.floor(Math.random()*1000)}
+function escape(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+
+function addDebt(){
+ const name=document.getElementById("name").value.trim();
+ const phone=document.getElementById("phone").value.trim();
+ const amount=Number(document.getElementById("amount").value);
+ const note=document.getElementById("note").value.trim();
+ if(!name)return alert("أدخل اسم ولقب الزبون");
+ if(!amount||amount<=0)return alert("أدخل مبلغ الدين");
+
+ let c=customers.find(x=>x.name.trim().toLowerCase()===name.toLowerCase() && x.phone===phone);
+ if(!c){
+   c={id:uid(),name,phone,operations:[]};
+   customers.unshift(c);
+ }
+ c.operations.unshift({id:uid(),type:"debt",amount,note,date:new Date().toLocaleString("ar-DZ")});
+ save();clearForm();render();
+}
+
+function addPayment(id){
+ const c=customers.find(x=>x.id===id);if(!c)return;
+ const remaining=getRemaining(c);
+ openModal("💰 تسجيل دفعة",`
+   <p style="margin-bottom:12px;line-height:1.8"><b>${escape(c.name)}</b><br>
+   المتبقي: <b style="color:var(--red)">${money(remaining)}</b></p>
+   <input id="payInput" type="number" min="1" max="${remaining}" placeholder="مبلغ الدفعة بالدج">
+   <input id="payNote" style="margin-top:10px" placeholder="ملاحظة (اختياري)">
+   <div class="modal-actions">
+    <button class="btn primary" onclick="savePayment(${id})">✅ تسجيل الدفعة</button>
+    <button class="btn gray" onclick="closeModal()">إلغاء</button>
+   </div>`);
+ setTimeout(()=>document.getElementById("payInput").focus(),50);
+}
+function savePayment(id){
+ const c=customers.find(x=>x.id===id);if(!c)return;
+ const amount=Number(document.getElementById("payInput").value);
+ const remaining=getRemaining(c);
+ if(!amount||amount<=0)return alert("أدخل مبلغ الدفعة");
+ if(amount>remaining)return alert("المبلغ أكبر من الدين المتبقي");
+ c.operations.unshift({id:uid(),type:"payment",amount,note:document.getElementById("payNote").value.trim(),date:new Date().toLocaleString("ar-DZ")});
+ save();closeModal();render();
+}
+function getDebt(c){return c.operations.filter(x=>x.type==="debt").reduce((s,x)=>s+x.amount,0)}
+function getPaid(c){return c.operations.filter(x=>x.type==="payment").reduce((s,x)=>s+x.amount,0)}
+function getRemaining(c){return Math.max(0,getDebt(c)-getPaid(c))}
+
+function render(){
+ const q=document.getElementById("search").value.trim().toLowerCase();
+ let arr=customers.filter(c=>{
+   const match=(c.name+" "+c.phone).toLowerCase().includes(q);
+   const rem=getRemaining(c);
+   return match&&(filter==="all"||(filter==="debt"&&rem>0)||(filter==="paid"&&rem===0));
+ });
+ const list=document.getElementById("list");
+ if(!arr.length){list.innerHTML='<div class="empty">📭 لا توجد نتائج</div>'}
+ else list.innerHTML=`<table class="data-table">
+   <thead>
+     <tr>
+       <th>الإجراءات</th>
+       <th>المتبقي</th>
+       <th>المدفوع</th>
+       <th>الهاتف</th>
+       <th>الاسم</th>
+     </tr>
+   </thead>
+   <tbody>
+     ${arr.map(c=>{
+       const rem=getRemaining(c), paid=getPaid(c);
+       return `<tr>
+         <td>
+           <div class="actions">
+             <button class="mini green" onclick="addPayment(${c.id})">💰 دفع</button>
+             <button class="mini" onclick="details(${c.id})">📋 التفاصيل</button>
+             <button class="mini" onclick="editCustomer(${c.id})">✏️ تعديل</button>
+             <button class="mini red" onclick="deleteCustomer(${c.id})">🗑️ حذف</button>
+           </div>
+         </td>
+         <td><span class="amount ${rem===0?'paid':''}">${rem===0?"✅ مسدد":money(rem)}</span></td>
+         <td style="color:var(--green);font-weight:600">${money(paid)}</td>
+         <td>${c.phone?escape(c.phone):'<span style="color:#cbd5e1">—</span>'}</td>
+         <td><span class="name">${escape(c.name)}</span></td>
+       </tr>`;
+     }).join("")}
+   </tbody>
+ </table>`;
+ document.getElementById("count").textContent=customers.length;
+ document.getElementById("total").textContent=money(customers.reduce((s,c)=>s+getRemaining(c),0));
+ document.getElementById("paidTotal").textContent=money(customers.reduce((s,c)=>s+getPaid(c),0));
+}
+function details(id){
+ const c=customers.find(x=>x.id===id);if(!c)return;
+ const rows=c.operations.map(o=>`<div class="history-row">
+   <span>${o.type==="debt"?"🛒 دين":"💰 دفع"}<br><small>${escape(o.date)}${o.note?" — "+escape(o.note):""}</small></span>
+   <b class="${o.type==="debt"?"plus":"minus"}">${o.type==="debt"?"+":"-"} ${money(o.amount)}</b>
+ </div>`).join("");
+ openModal("📋 "+escape(c.name),`
+   <div class="detail-summary">
+    إجمالي الدين: <b>${money(getDebt(c))}</b><br>
+    المدفوع: <b class="paid">${money(getPaid(c))}</b><br>
+    <strong style="color:var(--red)">المتبقي: ${money(getRemaining(c))}</strong>
+   </div>
+   <div class="history">${rows||'<div class="empty">لا توجد عمليات</div>'}</div>
+   <div class="modal-actions"><button class="btn primary" onclick="addPayment(${c.id})">💰 تسجيل دفعة</button><button class="btn gray" onclick="closeModal()">إغلاق</button></div>`);
+}
+function editCustomer(id){
+ const c=customers.find(x=>x.id===id);if(!c)return;
+ openModal("✏️ تعديل بيانات الزبون",`
+  <input id="editName" value="${escape(c.name)}" placeholder="الاسم واللقب">
+  <input id="editPhone" style="margin-top:10px" value="${escape(c.phone)}" placeholder="رقم الهاتف">
+  <div class="modal-actions"><button class="btn primary" onclick="saveEdit(${id})">💾 حفظ</button><button class="btn gray" onclick="closeModal()">إلغاء</button></div>`);
+}
+function saveEdit(id){
+ const c=customers.find(x=>x.id===id);
+ const name=document.getElementById("editName").value.trim();
+ if(!name)return alert("أدخل الاسم");
+ c.name=name;c.phone=document.getElementById("editPhone").value.trim();
+ save();closeModal();render();
+}
+function deleteCustomer(id){
+ const c=customers.find(x=>x.id===id);
+ if(confirm("⚠️ حذف الزبون وكل سجل عملياته؟")){customers=customers.filter(x=>x.id!==id);save();render()}
+}
+function clearForm(){["name","phone","amount","note"].forEach(id=>document.getElementById(id).value="");document.getElementById("name").focus()}
+function setFilter(f){filter=f;document.querySelectorAll(".filter").forEach(b=>b.classList.toggle("active",b.dataset.filter===f));render()}
+
+function exportToExcel(){
+  const q=document.getElementById("search").value.trim().toLowerCase();
+  const arr=customers.filter(c=>{
+    const match=(c.name+" "+c.phone).toLowerCase().includes(q);
+    const rem=getRemaining(c);
+    return match&&(filter==="all"||(filter==="debt"&&rem>0)||(filter==="paid"&&rem===0));
+  });
+
+  if(!arr.length){
+    alert("لا توجد بيانات لتحميلها");
+    return;
+  }
+
+  const rows=[
+    ["الاسم","الهاتف","إجمالي الدين","المدفوع","المتبقي","الحالة"],
+    ...arr.map(c=>{
+      const debt=getDebt(c);
+      const paid=getPaid(c);
+      const rem=getRemaining(c);
+      return [c.name, c.phone || "", debt, paid, rem, rem===0?"مسدد":"عليه دين"];
+    })
+  ];
+
+  const csv='\uFEFF'+rows.map(row=>row.map(value=>`"${String(value).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv], {type:'application/vnd.ms-excel;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('a');
+  link.href=url;
+  link.download='جدول-الديون.xls';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function openModal(title,body){document.getElementById("modalTitle").innerHTML=title;document.getElementById("modalBody").innerHTML=body;document.getElementById("modal").classList.add("show")}
+function closeModal(){document.getElementById("modal").classList.remove("show")}
+document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
+render();
+</script>
+</body>
+</html>
