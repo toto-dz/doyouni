@@ -123,7 +123,7 @@ header p{margin:0;color:rgba(255,255,255,.85);font-size:13px;position:relative;z
 /* ===== Main Grid ===== */
 .main-grid{
   display:grid;
-  grid-template-columns:1.2fr 1.8fr;
+  grid-template-columns:1fr 2.2fr;
   gap:14px;
   flex:1;
   min-height:0;
@@ -438,7 +438,7 @@ function showToast(msg,type="info"){
 }
 
 /* ==================== الحسابات ==================== */
-function getDebt(c){return c.operations.filter(x=>x.type==="debt").reduce((s,x)=>s+x.amount,0)}
+function getDebt(c){return c.operations.filter(x=>x.type==="debt").reduce((s,x)=>s+x.amount,0) - c.operations.filter(x=>x.type==="return").reduce((s,x)=>s+x.amount,0)}
 function getPaid(c){return c.operations.filter(x=>x.type==="payment").reduce((s,x)=>s+x.amount,0)}
 function getRemaining(c){return Math.max(0,getDebt(c)-getPaid(c))}
 
@@ -513,6 +513,31 @@ function saveNewDebt(id){
   showToast("تم إضافة الحساب الجديد","success");
 }
 
+/* ==================== استرجاع سلعة ==================== */
+function addReturnedItem(id){
+  const c=customers.find(x=>x.id===id);if(!c)return;
+  openModal("↩️ استرجاع سلعة",`
+    <p style="margin-bottom:12px;line-height:1.8"><b>${escape(c.name)}</b><br>
+    المتبقي الحالي: <b style="color:var(--red)">${money(getRemaining(c))}</b></p>
+    <input id="returnItemInput" type="number" min="1" placeholder="قيمة السلعة المسترجعة بالدج">
+    <input id="returnItemNote" style="margin-top:10px" placeholder="ملاحظة (اختياري)">
+    <div class="modal-actions">
+      <button class="btn primary" onclick="saveReturnedItem(${id})">✅ تسجيل الاسترجاع</button>
+      <button class="btn gray" onclick="closeModal()">إلغاء</button>
+    </div>`);
+  setTimeout(()=>document.getElementById("returnItemInput").focus(),50);
+}
+function saveReturnedItem(id){
+  const c=customers.find(x=>x.id===id);if(!c)return;
+  const amount=Number(document.getElementById("returnItemInput").value);
+  if(!amount||amount<=0){showToast("أدخل قيمة السلعة المسترجعة","error");return}
+  const remaining=getRemaining(c);
+  if(amount>remaining){showToast("قيمة الاسترجاع أكبر من المتبقي","error");return}
+  c.operations.unshift({id:uid(),type:"return",amount,note:document.getElementById("returnItemNote").value.trim(),date:new Date().toLocaleString("ar-DZ")});
+  save();closeModal();render();
+  showToast("تم تسجيل استرجاع السلعة","success");
+}
+
 /* ==================== عرض القائمة ==================== */
 function render(){
   const q=document.getElementById("search").value.trim().toLowerCase();
@@ -554,6 +579,7 @@ function render(){
               <div class="actions">
                 <button class="mini green" onclick="addPayment(${c.id})">💰 دفع</button>
                 <button class="mini green" onclick="addNewDebtEntry(${c.id})">➕ حساب جديد</button>
+                <button class="mini amber" onclick="addReturnedItem(${c.id})">↩️ استرجاع سلعة</button>
                 <button class="mini" onclick="details(${c.id})">📋 التفاصيل</button>
                 <button class="mini" onclick="editCustomer(${c.id})">✏️ تعديل</button>
                 <button class="mini red" onclick="deleteCustomer(${c.id})">🗑️ حذف</button>
@@ -579,8 +605,8 @@ function render(){
 function details(id){
   const c=customers.find(x=>x.id===id);if(!c)return;
   const rows=c.operations.map(o=>`<div class="history-row">
-    <span>${o.type==="debt"?"🛒 دين":"💰 دفع"}<br><small>${escape(o.date)}${o.note?" — "+escape(o.note):""}</small></span>
-    <b class="${o.type==="debt"?"plus":"minus"}">${o.type==="debt"?"+":"-"} ${money(o.amount)}</b>
+    <span>${o.type==="debt"?"🛒 دين":o.type==="return"?"↩️ استرجاع سلعة":"💰 دفع"}<br><small>${escape(o.date)}${o.note?" — "+escape(o.note):""}</small></span>
+    <b class="${o.type==="debt"?"plus":o.type==="return"?"minus":"minus"}">${o.type==="debt"?"+":o.type==="return"?"-":"-"} ${money(o.amount)}</b>
   </div>`).join("");
   openModal("📋 "+escape(c.name),`
     <div class="detail-summary">
@@ -591,6 +617,7 @@ function details(id){
     <div class="history">${rows||'<div class="empty">لا توجد عمليات</div>'}</div>
     <div class="modal-actions">
       <button class="btn primary" onclick="addPayment(${c.id})">💰 تسجيل دفعة</button>
+      <button class="btn amber" onclick="addReturnedItem(${c.id})">↩️ استرجاع سلعة</button>
       <button class="btn gray" onclick="closeModal()">إغلاق</button>
     </div>`);
 }
